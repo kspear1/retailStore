@@ -66,7 +66,7 @@ function App() {
   return (
     <div className="dashboard-container">
       <div className="dashboard">
-        <h2 className="welcome-heading">Welcome to RetailMadness!</h2>
+        <h2 className="welcome-heading">Welcome to Retail Madness!</h2>
         
         <div className="user-greeting">
           <h3>Hello Shopper!</h3>
