@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from 'axios';
 import './App.css';
 import Cart from './Cart'
@@ -10,6 +10,7 @@ function App() {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [cartMessage, setCartMessage] = useState('');
+  const cartMessageTimeoutRef = useRef(null); //Helps with message time-out issues
 
   //Logic to add an item to the cart if it is not out of stock
   const handleAddToCart = (product) => {
@@ -25,32 +26,41 @@ function App() {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
 
-    //Set cart message
-    setCartMessage(`${product.productname} added to cart!`);
+    // 🛎 Clear previous timeout if it exists
+  if (cartMessageTimeoutRef.current) {
+    clearTimeout(cartMessageTimeoutRef.current);
+  }
 
-    //Clear the message after 3 seconds
+    //Force reset the message first to re-trigger animation
+    setCartMessage('');
+
     setTimeout(() => {
-      setCartMessage('');
-    }, 3000); // 3000 milliseconds = 3 seconds
+      setCartMessage(`${product.productname} added to cart!`);
+
+      cartMessageTimeoutRef.current = setTimeout(() => {
+        setCartMessage('');
+        cartMessageTimeoutRef.current = null;
+      }, 3000);
+    }, 50); // 50 milliseconds delay to fully reset animation
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products');
+      const data = await response.json();
+      console.log('Fetched products:', data);
+      setProducts(data);
+    } catch (err) {
+      console.error('Failed to load products', err);
+    }
   };
   
   useEffect(() => {
-
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-        console.log('Fetched products:', data);
-        setProducts(data);
-      } catch (err) {
-        console.error('Failed to load products', err);
-      }
-    };
     fetchProducts();
   }, []);
 
   if (showCart) {
-    return <Cart cart={cart} setCart={setCart} onClose={() => setShowCart(false)} />;
+    return <Cart cart={cart} setCart={setCart} onClose={() => setShowCart(false)} fetchProducts={fetchProducts} />;
   }
 
   return (
@@ -71,6 +81,7 @@ function App() {
             <div key={product.productid} className="product-card">
               <h4>{product.productname}</h4>
               <p>${product.price}</p>
+              <p>In stock: {product.stockquantity}</p>
               {product.stockquantity > 0 ? (
               <button className="add-to-cart-btn" onClick={() => handleAddToCart(product)}>
                 Add to Cart

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import App from './App'
 
-const Cart = ({ cart = [], setCart, onClose }) => {
+const Cart = ({ cart = [], setCart, onClose, fetchProducts }) => {
   const [formData, setFormData] = useState({
     firstname: '',
     lastname: '',
@@ -15,6 +15,7 @@ const Cart = ({ cart = [], setCart, onClose }) => {
   const taxRate = 0.08; // 8%
   const taxAmount = cartSubtotal * taxRate;
   const totalWithTax = cartSubtotal + taxAmount;
+  const [formError, setFormError] = useState(''); 
 
 
   console.log('Cart received:', cart);console.log('Cart received:', cart);
@@ -24,6 +25,15 @@ const Cart = ({ cart = [], setCart, onClose }) => {
   };
 
   const handlePurchase = async () => {
+    //Forces user to fill in all inputs
+    if (!formData.firstname || !formData.lastname || !formData.email || !formData.phone || !formData.paymentmethod) {
+      setFormError('⚠️ Please fill out all required fields before purchasing.');
+      return;
+    }
+  
+    //Clears any previous errors
+    setFormError('');
+
     if (!window.confirm('Is everything correct?')) return;
 
     console.log('Sending to server:', formData, cart);
@@ -38,6 +48,7 @@ const Cart = ({ cart = [], setCart, onClose }) => {
         alert('Purchase Successful');
         setCart([]);
         setFormData({ firstname: '', lastname: '', email: '', phone: '' });
+        fetchProducts(); //Immediately updates the stock on the frontend
       } else {
         alert('Error: Purchase failed');
       }
@@ -92,7 +103,12 @@ const Cart = ({ cart = [], setCart, onClose }) => {
         </select>
         </div>
         <button onClick={handlePurchase}>Click to Buy</button>
-      </div>
+        </div>
+        {formError && (
+          <div className="form-error-message">
+            {formError}
+          </div>
+        )}
       <div>
       <button className="add-to-cart-btn" onClick={onClose}>
         Continue Shopping!
