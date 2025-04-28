@@ -9,7 +9,9 @@ function App() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [cartMessage, setCartMessage] = useState('');
 
+  //Logic to add an item to the cart if it is not out of stock
   const handleAddToCart = (product) => {
     const existingItem = cart.find(item => item.productid === product.productid);
   
@@ -22,6 +24,14 @@ function App() {
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+
+    //Set cart message
+    setCartMessage(`${product.productname} added to cart!`);
+
+    //Clear the message after 3 seconds
+    setTimeout(() => {
+      setCartMessage('');
+    }, 3000); // 3000 milliseconds = 3 seconds
   };
   
   useEffect(() => {
@@ -51,7 +61,11 @@ function App() {
         <div className="user-greeting">
           <h3>Hello Shopper!</h3>
         </div>
-
+        {cartMessage && (
+        <div className="cart-message">
+          {cartMessage}
+        </div>
+        )}
         <div className="product-grid">
           {products.map((product) => (
             <div key={product.productid} className="product-card">
