@@ -25,6 +25,12 @@ const Cart = ({ cart = [], setCart, onClose, fetchProducts }) => {
   };
 
   const handlePurchase = async () => {
+    //Stops the user from buying 'nothing'
+    if (cart.length === 0) {
+      alert('⚠️ Please add at least one item to your cart before purchasing.');
+      return; // Stops the purchase
+    }
+
     //Forces user to fill in all inputs
     if (!formData.firstname || !formData.lastname || !formData.email || !formData.phone || !formData.paymentmethod) {
       setFormError('⚠️ Please fill out all required fields before purchasing.');
