@@ -1,0 +1,95 @@
+CREATE TABLE IF NOT EXISTS Suppliers (
+    SupplierID INT PRIMARY KEY,
+    SupplierName VARCHAR(200) NOT NULL UNIQUE,
+    Phone VARCHAR(10) UNIQUE,
+    Email VARCHAR(200) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(255) NOT NULL,
+    Category VARCHAR(100) NOT NULL,
+    Price DECIMAL (10,2) NOT NULL CHECK (Price >= 0),
+    StockQuantity INT NOT NULL,
+    SupplierID INT NOT NULL,
+    FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Customers (
+    CustomerID INT PRIMARY KEY,
+    FirstName VARCHAR(100) NOT NULL,
+    LastName VARCHAR(100) NOT NULL,
+    Email VARCHAR(200) UNIQUE NOT NULL,
+    Phone VARCHAR(10) UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    OrderDate TIMESTAMP,
+    TotalAmount DECIMAL(10,2) NOT NULL CHECK (TotalAmount >= 0),
+    PaymentMethod VARCHAR(50) CHECK (PaymentMethod IN ('Credit', 'Debit', 'Cash')),
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Order_Items (
+    OrderItemID INT PRIMARY KEY,
+    OrderID INT NOT NULL,
+    ProductID INT NOT NULL,
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    Subtotal DECIMAL(10,2) NOT NULL CHECK (Subtotal >= 0),
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Suppliers (
+    SupplierID INT PRIMARY KEY,
+    SupplierName VARCHAR(200) NOT NULL UNIQUE,
+    Phone VARCHAR(10) UNIQUE,
+    Email VARCHAR(200) UNIQUE NOT NULL
+);
+
+
+-- Current Values
+
+INSERT INTO Suppliers (SupplierID, SupplierName, Phone, Email) 
+VALUES
+    (1, 'Urban Threads Co.', '8009873566', 'contact@urbanthreads.com'),
+    (2, 'Fashion Hub Ltd.', '4707253412', 'support@fashionhub.com'),
+    (3, 'Denim House', '3134445555', 'sales@denimhouse.com'),
+    (4, 'Elite Apparel', '4045856666', 'info@eliteapparel.com'),
+    (5, 'SneakerWorks', '7706667721', 'orders@sneakerworks.com');
+
+INSERT INTO Products (ProductID, ProductName, Category, Price, StockQuantity, SupplierID) 
+VALUES
+    (101, 'Mens Slim Fit Jeans', 'Bottoms', 49.99, 100, 3),
+    (102, 'Womens Denim Jacket', 'Outerwear', 69.99, 50, 3),
+    (103, 'Unisex Graphic T-Shirt', 'Tops', 19.99, 200, 1),
+    (104, 'White Sneakers', 'Footwear', 59.99, 80, 5),
+    (105, 'Black Hoodie', 'Outerwear', 39.99, 120, 2),
+    (106, 'Pink Cardigan', 'Outerwear', 29.99, 30, 4),
+    (107, 'Blue Heels', 'Footwear', 69.99, 60, 2);
+
+
+-- customerID in customers table is auto-incremented
+alter table customers 
+alter column customerid 
+add generated always as identity;
+
+-- Starts customerID at 1000
+ALTER TABLE customers
+ALTER COLUMN customerid
+RESTART WITH 1000;
+
+-- A function that decreses the StockQuantity in the Products table
+create or replace function decrease_product_stock(product_id int, amount int)
+returns void
+language plpgsql
+as $$
+begin
+  update products
+  set stockquantity = stockquantity - amount
+  where productid = product_id;
+end;
+$$;
+
